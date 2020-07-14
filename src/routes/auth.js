@@ -10,9 +10,21 @@ const { v4: uuidv4 } = require('uuid');
 const express = require('express');
 const router = express.Router();
 
-const passwordResetToken = require('../models/PasswordResetToken');
 const User = require('../models/User');
 const PasswordResetToken = require('../models/PasswordResetToken');
+
+router.get('/verify', async (request, response) => {
+    const authHeader = request.get('authorization');
+    if (!request.user || !authHeader)
+        return response.status(400).json({ error: 'No user details provided', loggedIn: false });
+    
+        const token = authHeader.split(' ')[1];
+    if(!token)
+        return response.status(400).json({ error: 'No user details provided', loggedIn: false });
+    
+    const verified = jwt.verify(token, process.env.TOKEN_SECRET);
+    return response.status(200).json({ jwt: verified, loggedIn: true });
+});
 
 router.post('/signup', async (request, response) => {
     const { username, email, password, passwordConfirm } = request.body;
@@ -90,7 +102,7 @@ router.post('/password/reset', async (request, response) => {
 
     const user = await User.findOne({ id: dbToken.id });
 
-    if(await PasswordUtils.compare(new_password, user.password))
+    if (await PasswordUtils.compare(new_password, user.password))
         return response.status(400).json({ error: 'You cannot use the same password as your previous password' });
 
     user.password = await PasswordUtils.encrypt(new_password);
