@@ -42,8 +42,6 @@ const routes = require('./routes');
 
 app.use('/api', routes);
 
-app.use(express.static('public'));
-
 mongoose.connect(`mongodb://${process.env.MONGO_CONNECTION}`, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
