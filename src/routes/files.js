@@ -20,17 +20,19 @@ router.post('/upload', upload.single('upload'), async (request, response) => {
     const id = uuidv1();
     const fileName = `${id}.${file.originalname.split('.')[1]}`;
 
-    const s3Data = S3Utils.put({
-        Body: file.buffer,
-        Bucket: 'chator-cdn',
-        Key: fileName,
-        ACL: 'public-read',
-        ContentType: file.mimetype,
-    });
-
-    await Upload.create({ id: id, author: uploader });
-
-    return response.status(200).json({ message: 'Successfully uploaded file to the CDN', url: `https://chator-cdn.ams3.digitaloceanspaces.com/${fileName}` });
+    try {
+        S3Utils.put({
+            Body: file.buffer,
+            Bucket: 'chator-cdn',
+            Key: fileName,
+            ACL: 'public-read',
+            ContentType: file.mimetype,
+        });
+        await Upload.create({ id: id, author: uploader });
+        return response.status(200).json({ message: 'Successfully uploaded file to the CDN', url: `https://chator-cdn.ams3.digitaloceanspaces.com/${fileName}` });
+    } catch (e) {
+        return response.status(400).json({ error: 'There was an issue whilst uploading this image to the CDN' });
+    }
 });
 
 module.exports = router;
