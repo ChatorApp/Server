@@ -4,6 +4,7 @@
   "main": "src/index.js",
   "license": "MIT",
   "dependencies": {
+    "aws-sdk": "^2.713.0",
     "bcrypt": "^5.0.0",
     "biguint-format": "^1.0.2",
     "body-parser": "^1.19.0",
