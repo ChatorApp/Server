@@ -32,7 +32,7 @@ const app = express();
 const server = http.createServer(app);
 const io = require('socket.io')(server);
 
-app.use(bodyParser.json());
+app.use(express.json({ limit: '2mb' }));
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
