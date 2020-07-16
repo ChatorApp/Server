@@ -11,7 +11,6 @@ const User = require('./models/User');
 
 const AuthMiddleware = require('./middleware/Auth');
 
-const bodyParser = require('body-parser');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
