@@ -90,6 +90,28 @@ router.post('/login', async (request, response) => {
     });
 });
 
+router.post('/email/verify/request', async (request, response) => {
+    const { email } = request.body;
+    if(!email)
+        return response.status(400).json({ error: 'You must provide an email to verify' });
+    
+    const user = await User.findOne({ email });
+
+    if(user) {
+        const currentVerificationToken = await EmailVerificationToken.findOne({ id: user.id });
+        const emailVerificationToken = !currentResetToken ? uuidv4() : currentResetToken.token;
+
+        if (!currentVerificationToken) {
+            EmailVerificationToken.create({
+                id: user.id,
+                token: emailVerificationToken
+            });
+        }
+
+        EmailUtils.sendSimpleMessage(user.email, 'Chator Email Verification', `Please use the email verification token '${emailVerificationToken}'`);
+    }
+});
+
 router.post('/password/reset', async (request, response) => {
     const { token, new_password, new_password_confirm } = request.body;
 
