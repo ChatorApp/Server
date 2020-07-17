@@ -11,6 +11,7 @@ const express = require('express');
 const router = express.Router();
 
 const User = require('../models/User');
+const EmailVerificationToken = require('../models/EmailVerificationToken');
 const PasswordResetToken = require('../models/PasswordResetToken');
 
 router.get('/verify', async (request, response) => {
@@ -71,6 +72,9 @@ router.post('/login', async (request, response) => {
 
     if (!user || !await PasswordUtils.compare(password, user.password))
         return response.status(400).json({ error: 'Invalid username or password' });
+
+    if (!user.emailConfirmed)
+        return response.status(400).json({ error: 'Email is not verified, please check your emails' });
 
     const payload = {
         id: user.id,
