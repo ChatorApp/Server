@@ -90,6 +90,27 @@ router.post('/login', async (request, response) => {
     });
 });
 
+router.post('/email/verify', async (request, response) => {
+    const { token } = request.body;
+
+    if (!token)
+        return response.status(400).json({ error: 'You must provide an email verification token' });
+
+    const dbToken = await EmailVerificationToken.findOne({ token });
+
+    if (!dbToken)
+        return response.status(400).json({ error: 'Invalid email verification token' });
+
+    const user = await User.findOne({ id: dbToken.id });
+
+    user.emailConfirmed = true;
+    user.save();
+
+    await EmailVerificationToken.deleteOne({ id: user.id, token: token });
+
+    return response.status(200).json({ message: 'Your email has been verified. You can now login.' });
+});
+
 router.post('/email/verify/request', async (request, response) => {
     const { email } = request.body;
     if(!email)
