@@ -48,12 +48,7 @@ mongoose.connect(`mongodb://${process.env.MONGO_CONNECTION}`, {
     autoCreate: true,
 });
 
-io.on('connection', socket => {
-    console.log('New WS Connection...');
-    socket.on('SEND_MESSAGE', data => {
-        io.emit('MESSAGE', data);
-    })
-});
+const sockets = require('./sockets')(io);
 
 const db = mongoose.connection;
 
