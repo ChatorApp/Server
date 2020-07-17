@@ -17,6 +17,9 @@ Below is a list of tasks that need be completed to produce a MVP (Minimum Viable
     - `/auth/signup`
     - `/auth/login`
     - `/auth/password/reset/request`
+    - `/auth/password/reset`
+    - `/auth/email/verify/request`
+    - `/auth/email/verify`
 - [x] Add server models & objects
   - [x] Create Server
     - [x] Add Icons - ~~cdn?~~ For now we're just using existing Icon URLs
