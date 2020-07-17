@@ -120,7 +120,7 @@ router.post('/email/verify/request', async (request, response) => {
 
     if(user) {
         const currentVerificationToken = await EmailVerificationToken.findOne({ id: user.id });
-        const emailVerificationToken = !currentResetToken ? uuidv4() : currentResetToken.token;
+        const emailVerificationToken = !currentVerificationToken ? uuidv4() : currentVerificationToken.token;
 
         if (!currentVerificationToken) {
             EmailVerificationToken.create({
@@ -131,6 +131,8 @@ router.post('/email/verify/request', async (request, response) => {
 
         EmailUtils.sendSimpleMessage(user.email, 'Chator Email Verification', `Please use the email verification token '${emailVerificationToken}'`);
     }
+
+    return response.status(200).json({ message: 'If that email exists, you have been sent a verification link' });
 });
 
 router.post('/password/reset', async (request, response) => {
