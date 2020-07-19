@@ -1,21 +1,6 @@
-const jwt = require('jsonwebtoken');
+//Events
+const connectEvent = require('./events/connect');
 
 module.exports = ((io) => {
-    io.on('connection', socket => {
-        console.log('New WS Connection...');
-        socket.on('SEND_MESSAGE', data => {
-            const { jwt_token, message } = data;
-            const verifiedToken = jwt.verify(jwt_token, process.env.TOKEN_SECRET);
-            io.emit('MESSAGE', {
-                user: {
-                    name: verifiedToken.username,
-                    id: verifiedToken.id
-                },
-                message: {
-                    content: message,
-                    timestamp: Date.now(),
-                },
-            });
-        });
-    });
+    io.on('connection', socket => connectEvent.trigger(io, socket));
 });
