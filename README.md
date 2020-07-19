@@ -30,11 +30,11 @@ Below is a list of tasks that need be completed to produce a MVP (Minimum Viable
     - [x] Change Description
     - [x] Change Icons
   - [x] Delete Server
-- [ ] Implement & Write up documentation for all SocketIO events
-  - [ ] SEND_MESSAGE
-  - [ ] MESSAGE
-  - [ ] CONNECT
-  - [ ] DISCONNECT
-  - [ ] LOGIN
-  - [ ] LOGOUT
-- [ ] Extract SocketIO logic out of `src/index.js`
+- [x] Implement & Write up documentation for all SocketIO events
+  - [x] SEND_MESSAGE
+  - [x] MESSAGE
+  - [x] CONNECT *(This is being listened to and just being logged in the console for now)*
+  - [x] ~~DISCONNECT~~ *(Not needed as first thought)*
+  - [x] ~~LOGIN~~ *(Not needed as this is detected via /api/auth/login)*
+  - [x] ~~LOGOUT~~ *(Not needed as this is detected via /api/auth/login)*
+- [x] Extract SocketIO logic out of `src/index.js`
