@@ -15,7 +15,6 @@ var uploadSchema = new Schema({
     author: {
         type: Long,
         required: true,
-        unique: true,
     },
 });
 
