@@ -1,28 +1,53 @@
 'use strict';
 
+const S3Utils = require('../utils/S3Utils');
+
+const { v1: uuidv1 } = require('uuid');
+
 const Generators = require('../utils/Generators');
 
 const Server = require('../models/Server');
+const Upload = require('../models/Upload');
 
 const express = require('express');
 const router = express.Router();
+
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
 router.get('/me', async (request, response) => {
     const servers = await Server.find({ owner: request.user.id });
     return response.status(200).json(servers.map(x => ({ id: x.id, icon: x.iconUrl, name: x.name})));
 });
 
-router.post('/create', async (request, response) => {
-    const { name, description, iconUrl } = request.body;
+router.post('/create', upload.single('upload'), async (request, response) => {
+    const { name, description } = request.body;
+    const file = request.file;
 
-    if (!name || !description || !iconUrl)
+    if (!name || !description || !file)
         return response.status(400).json({ error: 'To create a server you must provide a name, a description and an icon' });
+
+        const id = uuidv1();
+        const fileName = `${id}.${file.originalname.split('.')[1]}`;
+    
+        try {
+            S3Utils.put({
+                Body: file.buffer,
+                Bucket: 'chator-cdn',
+                Key: fileName,
+                ACL: 'public-read',
+                ContentType: file.mimetype,
+            });
+            await Upload.create({ id: id, author: request.user.id });
+        } catch (e) {
+            return response.status(400).json({ error: 'There was an issue whilst uploading the Icon URL to the CDN' });
+        }
 
     Server.create({
         id: Generators.generateId(),
         name,
         description,
-        iconUrl,
+        iconUrl: `https://chator-cdn.ams3.digitaloceanspaces.com/${fileName}`,
         owner: request.user.id,
     }, (error, server) => {
         if (error) {
