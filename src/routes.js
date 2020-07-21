@@ -12,6 +12,5 @@ router.get('/', (request, response) => {
 router.use('/auth', require('./routes/auth'));
 router.use('/servers', AuthMiddleware.checkloggedIn, require('./routes/server'));
 router.use('/users', AuthMiddleware.checkloggedIn, require('./routes/user'));
-router.use('/files', AuthMiddleware.checkloggedIn, require('./routes/files'));
 
 module.exports = router;
