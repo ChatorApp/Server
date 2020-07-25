@@ -33,8 +33,38 @@ Below is a list of tasks that need be completed to produce a MVP (Minimum Viable
 - [x] Implement & Write up documentation for all SocketIO events
   - [x] SEND_MESSAGE
   - [x] MESSAGE
-  - [x] CONNECT *(This is being listened to and just being logged in the console for now)*
-  - [x] ~~DISCONNECT~~ *(Not needed as first thought)*
-  - [x] ~~LOGIN~~ *(Not needed as this is detected via /api/auth/login)*
-  - [x] ~~LOGOUT~~ *(Not needed as this is detected via /api/auth/login)*
+  - [x] CONNECT _(This is being listened to and just being logged in the console for now)_
+  - [x] ~~DISCONNECT~~ _(Not needed as first thought)_
+  - [x] ~~LOGIN~~ _(Not needed as this is detected via /api/auth/login)_
+  - [x] ~~LOGOUT~~ _(Not needed as this is detected via /api/auth/login)_
 - [x] Extract SocketIO logic out of `src/index.js`
+
+## API Endpoints
+
+### /api/auth
+
+| Endpoint                         | Request Type | Endpoint Description                                |
+| -------------------------------- | ------------ | --------------------------------------------------- |
+| /api/auth/verify                 | GET          | Handles verification of whether a user is logged in |
+| /api/auth/signup                 | POST         | Handles registering a user up for the system        |
+| /api/auth/login                  | POST         | Handles logging in for the system                   |
+| /api/auth/email/verify           | POST         | Handles verification of emails                      |
+| /api/auth/email/verify/request   | POST         | Handles generation of an email request token        |
+| /api/auth/password/reset         | POST         | Handles password resets                             |
+| /api/auth/password/reset/request | POST         | Handles generation of password reset tokens         |
+
+### /api/servers
+
+| Endpoint            | Request Type | Endpoint Description                                 |
+| ------------------- | ------------ | ---------------------------------------------------- |
+| /api/servers/me     | GET          | Gets all servers that the current user has access to |
+| /api/servers/:id    | GET          | Gets information about a specific server             |
+| /api/servers/create | POST         | Creates a server                                     |
+| /api/servers/update | PUT          | Updates a server                                     |
+| /api/servers/delete | DELETE       | Deletes a server                                     |
+
+### /api/users
+
+| Endpoint      | Request Type | Endpoint Description                     |
+| ------------- | ------------ | ---------------------------------------- |
+| /api/users/me | GET          | Gets information about the specific user |
