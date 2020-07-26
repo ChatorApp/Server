@@ -17,7 +17,13 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 router.get('/me', async (request, response) => {
     const servers = await Server.find({ owner: request.user.id });
-    return response.status(200).json(servers.map(x => ({ id: x.id, icon: x.iconUrl, name: x.name})));
+    return response.status(200).json(servers.map(x => ({ id: x.id, icon: x.iconUrl, name: x.name })));
+});
+
+router.get('/:id', async (request, response) => {
+    const { id } = request.params;
+    const server = await Server.findOne({ id });
+    return response.status(200).json({ name: server.name, id, iconUrl: server.iconUrl });
 });
 
 router.post('/create', upload.single('upload'), async (request, response) => {
@@ -27,27 +33,27 @@ router.post('/create', upload.single('upload'), async (request, response) => {
     if (!name || !description || !file)
         return response.status(400).json({ error: 'To create a server you must provide a name, a description and an icon' });
 
-        const id = uuidv1();
-        const fileName = `${id}.${file.originalname.split('.')[1]}`;
-    
-        try {
-            S3Utils.put({
-                Body: file.buffer,
-                Bucket: 'chator-cdn',
-                Key: fileName,
-                ACL: 'public-read',
-                ContentType: file.mimetype,
-            });
-            await Upload.create({ id: id, author: request.user.id });
-        } catch (e) {
-            return response.status(400).json({ error: 'There was an issue whilst uploading the Icon URL to the CDN' });
-        }
+    const id = uuidv1();
+    const fileName = `${id}.${file.originalname.split('.')[1]}`;
+
+    try {
+        S3Utils.put({
+            Body: file.buffer,
+            Bucket: 'chator-cdn',
+            Key: fileName,
+            ACL: 'public-read',
+            ContentType: file.mimetype,
+        });
+        await Upload.create({ id: id, author: request.user.id });
+    } catch (e) {
+        return response.status(400).json({ error: 'There was an issue whilst uploading the Icon URL to the CDN' });
+    }
 
     Server.create({
         id: Generators.generateId(),
         name,
         description,
-        iconUrl: `https://chator-cdn.ams3.digitaloceanspaces.com/${fileName}`,
+        iconUrl: `https://cdn.chator.app/${fileName}`,
         owner: request.user.id,
     }, (error, server) => {
         if (error) {

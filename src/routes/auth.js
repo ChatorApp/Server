@@ -18,11 +18,11 @@ router.get('/verify', async (request, response) => {
     const authHeader = request.get('authorization');
     if (!request.user || !authHeader)
         return response.status(400).json({ error: 'No user details provided', loggedIn: false });
-    
-        const token = authHeader.split(' ')[1];
-    if(!token)
+
+    const token = authHeader.split(' ')[1];
+    if (!token)
         return response.status(400).json({ error: 'No user details provided', loggedIn: false });
-    
+
     const verified = jwt.verify(token, process.env.TOKEN_SECRET);
     return response.status(200).json({ jwt: verified, loggedIn: true });
 });
@@ -113,12 +113,12 @@ router.post('/email/verify', async (request, response) => {
 
 router.post('/email/verify/request', async (request, response) => {
     const { email } = request.body;
-    if(!email)
+    if (!email)
         return response.status(400).json({ error: 'You must provide an email to verify' });
-    
+
     const user = await User.findOne({ email });
 
-    if(user) {
+    if (user) {
         const currentVerificationToken = await EmailVerificationToken.findOne({ id: user.id });
         const emailVerificationToken = !currentVerificationToken ? uuidv4() : currentVerificationToken.token;
 

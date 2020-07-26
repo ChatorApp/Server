@@ -10,7 +10,7 @@ const s3 = new AWS.S3({
 module.exports = {
     put: (params) => {
         return s3.putObject(params, (err, data) => {
-            if(err) console.log(err, err.stack);
+            if (err) console.log(err, err.stack);
             else return data;
         });
     },

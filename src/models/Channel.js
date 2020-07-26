@@ -6,21 +6,24 @@ require('mongoose-long')(mongoose);
 const Schema = mongoose.Schema;
 const Long = Schema.Types.Long;
 
-var passwordResetTokenSchema = new Schema({
+var channelSchema = new Schema({
     id: {
         type: Long,
         required: true,
         unique: true,
     },
-    token: {
+    name: {
         type: String,
         required: true,
     },
-    expiryDate: {
-        type: Date,
+    description: {
+        type: String,
         required: true,
-        default: Date.now() + (1 * 1000 * 60 * 60 * 24),
-    }
+    },
+    server: {
+        type: Long,
+        required: true,
+    },
 });
 
-module.exports = mongoose.model('PasswordResetToken', passwordResetTokenSchema);
+module.exports = mongoose.model('Channel', channelSchema);
