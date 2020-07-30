@@ -2,7 +2,7 @@
 
 const Generators = require('../utils/Generators');
 
-const Category = require('../models/Server');
+const Category = require('../models/Category');
 const Server = require('../models/Server');
 
 const express = require('express');
@@ -21,7 +21,7 @@ router.get('/:id', async (request, response) => {
 router.post('/create', async (request, response) => {
     const { name, server } = request.body;
 
-    if (!name || !description || !server)
+    if (!name || !server)
         return response.status(400).json({ error: 'You must provide a name for the category' });
 
     const categoryServer = await Server.findOne({ id: server });
@@ -29,20 +29,12 @@ router.post('/create', async (request, response) => {
     if (!categoryServer)
         return response.status(400).json({ erorr: 'Server does not exist' });
 
-    if (!request.user.id !== categoryServer.owner)
+    if (request.user.id.toString() !== categoryServer.owner.toString())
         return response.status(400).json({ error: 'You are not the owner of the server' });
 
     const createdCategory = await Category.create({ id: Generators.generateId(), name, server });
 
     return response.status(200).json({ success: true, id: createdCategory.id, message: 'Successfully created a category' });
-});
-
-router.get('/for/:id', async (request, response) => {
-    const server = request.params.id;
-
-    const categories = await Category.find({ server: server });
-
-    return response.status(200).json(categories.map(x => ({ id: x.id, name: x.name })));
 });
 
 module.exports = router;

@@ -6,6 +6,8 @@ const { v1: uuidv1 } = require('uuid');
 
 const Generators = require('../utils/Generators');
 
+const Channel = require('../models/Channel');
+const Category = require('../models/Category');
 const Server = require('../models/Server');
 const Upload = require('../models/Upload');
 
@@ -23,7 +25,24 @@ router.get('/me', async (request, response) => {
 router.get('/:id', async (request, response) => {
     const { id } = request.params;
     const server = await Server.findOne({ id });
-    return response.status(200).json({ name: server.name, id, iconUrl: server.iconUrl });
+    const categories = await Category.find({ server: id });
+    const channels = await Channel.find({ server: id });
+    return response.status(200).json({
+        name: server.name,
+        id,
+        iconUrl: server.iconUrl,
+        categories: categories.map(category => ({
+            id: category.id,
+            name: category.name,
+            channels: channels
+                .filter(channel => channel.category.toString() == category.id.toString())
+                .map(channel => ({
+                    id: channel.id,
+                    name: channel.name,
+                    description: channel.description
+                })),
+        })),
+    });
 });
 
 router.post('/create', upload.single('upload'), async (request, response) => {

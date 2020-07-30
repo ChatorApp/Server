@@ -6,21 +6,13 @@ require('mongoose-long')(mongoose);
 const Schema = mongoose.Schema;
 const Long = Schema.Types.Long;
 
-var channelSchema = new Schema({
+var categorySchema = new Schema({
     id: {
         type: Long,
         required: true,
         unique: true,
     },
-    category: {
-        type: Long,
-        required: true,
-    },
     name: {
-        type: String,
-        required: true,
-    },
-    description: {
         type: String,
         required: true,
     },
@@ -30,4 +22,4 @@ var channelSchema = new Schema({
     },
 });
 
-module.exports = mongoose.model('Channel', channelSchema);
+module.exports = mongoose.model('Category', categorySchema);
