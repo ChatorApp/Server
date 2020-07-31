@@ -14,7 +14,11 @@ require('dotenv').config();
 const app = express();
 const server = http.createServer(app);
 const io = require('socket.io')(server);
+
 const AuthMiddleware = require('./middleware/Auth');
+const ErrorMiddleware = require('./middleware/Error');
+const NotFoundMiddleware = require('./middleware/NotFound');
+
 const User = require('./models/User');
 
 passport.use(
@@ -31,11 +35,14 @@ app.use(express.json({ limit: '2mb' }));
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
-app.use(AuthMiddleware.checkToken);
 
 const routes = require('./routes');
 
+app.use(AuthMiddleware.checkToken);
+
 app.use('/api', routes);
+app.use(ErrorMiddleware.errorHandler);
+app.use(NotFoundMiddleware.notFound);
 
 mongoose.connect(`mongodb://${process.env.MONGO_CONNECTION}`, {
   useNewUrlParser: true,

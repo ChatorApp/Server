@@ -14,18 +14,23 @@ const router = express.Router();
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.get('/me', async (request, response) => {
+router.get('/me', async (request, response, next) => {
   const servers = await Server.find({ owner: request.user.id });
+  if (!servers) return next(new Error('Server list not found'));
+
   return response
     .status(200)
     .json(servers.map((x) => ({ id: x.id, icon: x.iconUrl, name: x.name })));
 });
 
-router.get('/:id', async (request, response) => {
+router.get('/:id', async (request, response, next) => {
   const { id } = request.params;
   const server = await Server.findOne({ id });
   const categories = await Category.find({ server: id });
   const channels = await Channel.find({ server: id });
+
+  if (!server || !categories || !channels) return next(new Error('Could not found server/categories/channels'));
+
   return response.status(200).json({
     name: server.name,
     id,
@@ -44,14 +49,12 @@ router.get('/:id', async (request, response) => {
   });
 });
 
-router.post('/create', upload.single('upload'), async (request, response) => {
+router.post('/create', upload.single('upload'), async (request, response, next) => {
   const { name, description } = request.body;
   const { file } = request;
 
   if (!name || !description || !file) {
-    return response
-      .status(400)
-      .json({ error: 'To create a server you must provide a name, a description and an icon' });
+    return next(new Error('To create a server you must provide a name, a description and an icon'));
   }
 
   const id = uuidv1();
@@ -67,9 +70,7 @@ router.post('/create', upload.single('upload'), async (request, response) => {
     });
     await Upload.create({ id, author: request.user.id });
   } catch (e) {
-    return response
-      .status(400)
-      .json({ error: 'There was an issue whilst uploading the Icon URL to the CDN' });
+    return next(new Error('There was an issue whilst uploading the Icon URL to the CDN'));
   }
 
   Server.create(
@@ -82,10 +83,7 @@ router.post('/create', upload.single('upload'), async (request, response) => {
     },
     (error, server) => {
       if (error) {
-        console.log(error);
-        return response
-          .status(400)
-          .json({ error: 'There was a problem whilst creating your server' });
+        return next(new Error('There was a problem whilst creating your server'));
       }
 
       return response.status(200).json({
@@ -95,19 +93,19 @@ router.post('/create', upload.single('upload'), async (request, response) => {
     },
   );
 
-  return response.status(400).json({ error: 'Error whilst creating a server' });
+  return next(new Error('Error whilst creating a server'));
 });
 
-router.put('/update', async (request, response) => {
+router.put('/update', async (request, response, next) => {
   const {
     id, name, description, iconUrl, privacy,
   } = request.body;
 
-  if (!id) return response.status(400).json({ error: 'Server Id has not been provided' });
+  if (!id) return next(new Error('Server Id has not been provided'));
 
   const server = await Server.findOne({ id });
 
-  if (!server) return response.status(400).json({ error: 'Server Id not found' });
+  if (!server) return next(new Error('Server Id not found'));
 
   if (server.owner !== request.user.id) {
     return response.status(403).json({
@@ -126,14 +124,14 @@ router.put('/update', async (request, response) => {
   return response.status(200).json({ message: 'Successfully updated the server' });
 });
 
-router.delete('/delete', async (request, response) => {
+router.delete('/delete', async (request, response, next) => {
   const { id } = request.body;
 
-  if (!id) return response.status(400).json({ error: 'No Server Id was provided' });
+  if (!id) return next(new Error('No Server Id was provided'));
 
   const server = await Server.findOne({ id });
 
-  if (!server) return response.status(400).json({ error: 'Server could not be found' });
+  if (!server) return next(new Error('Server could not be found'));
 
   if (server.owner !== request.user.id) return response.status(403).json({ error: 'Only the owner of a server can delete a server' });
 

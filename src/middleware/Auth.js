@@ -7,14 +7,10 @@ module.exports = {
       const token = authHeader.split(' ')[1];
       if (token) {
         try {
-          jwt.verify(token, process.env.TOKEN_SECRET, (error, user) => {
-            if (error) console.log(error);
-            request.user = user;
-            next();
-          });
+          const result = jwt.verify(token, process.env.TOKEN_SECRET);
+          request.user = result;
         } catch (e) {
-          console.error('Error', e);
-          next();
+          next(e);
         }
       } else {
         next();

@@ -13,55 +13,52 @@ const PasswordResetToken = require('../models/PasswordResetToken');
 
 router.get('/verify', async (request, response) => {
   const authHeader = request.get('authorization');
-  if (!request.user || !authHeader) return response.status(400).json({ error: 'No user details provided', loggedIn: false });
+  if (!request.user || !authHeader) throw new Error('No user details provided');
 
   const token = authHeader.split(' ')[1];
-  if (!token) return response.status(400).json({ error: 'No user details provided', loggedIn: false });
+  if (!token) throw new Error('No user details provided');
 
   const verified = jwt.verify(token, process.env.TOKEN_SECRET);
   return response.status(200).json({ jwt: verified, loggedIn: true });
 });
 
-router.post('/signup', async (request, response) => {
+router.post('/signup', async (request, response, next) => {
   const {
     username, email, password, passwordConfirm,
   } = request.body;
-  const errors = [];
-  if (!username) errors.push('Username is required');
-  if (!email) errors.push('Email is required');
-  if (!password) errors.push('Password is required');
-  if (!passwordConfirm) errors.push('Password Confirmation is required');
-  if (password !== passwordConfirm) errors.push('Password and password confirmation are not the same');
-  if (await User.exists({ email })) errors.push('Email is not unique');
 
-  if (errors.length === 0) {
-    const encryptedPassword = await PasswordUtils.encrypt(password);
+  if (!username) return next(new Error('Username is required'));
+  if (!email) return next(new Error('Email is required'));
+  if (!password) return next(new Error('Password is required'));
+  if (!passwordConfirm) return next(new Error('Password Confirmation is required'));
+  if (password !== passwordConfirm) return next(new Error('Password and password confirmation are not the same'));
+  if (await User.exists({ email })) return next(new Error('Email is not unique'));
 
-    const newUser = await User.create({
-      id: Generators.generateId(),
-      username,
-      email,
-      password: encryptedPassword,
-    });
+  const encryptedPassword = await PasswordUtils.encrypt(password);
 
-    return response.status(200).json({
-      message: 'You have been signed up to Chator',
-      id: newUser.id,
-    });
-  }
-  return response.status(400).json({ error: errors });
+  const newUser = await User.create({
+    id: Generators.generateId(),
+    username,
+    email,
+    password: encryptedPassword,
+  });
+
+  return response.status(200).json({
+    message: 'You have been signed up to Chator',
+    id: newUser.id,
+  });
 });
 
-router.post('/login', async (request, response) => {
+router.post('/login', async (request, response, next) => {
   const { email, password } = request.body;
 
-  if (!email || !password) return response.status(400).json({ error: 'You must provide an email and password' });
+  if (!email || !password) return next(new Error('You must provide an email and password'));
 
   const user = await User.findOne({ email });
 
-  if (!user || !(await PasswordUtils.compare(password, user.password))) return response.status(400).json({ error: 'Invalid username or password' });
+  if (!user || !(await PasswordUtils.compare(password, user.password))) return next(new Error('Invalid username or password'));
 
-  if (!user.emailConfirmed) return response.status(400).json({ error: 'Email is not verified, please check your emails' });
+  if (!user.emailConfirmed) return next(new Error('Email is not verified, please check your emails'));
 
   const payload = {
     id: user.id,
@@ -70,23 +67,22 @@ router.post('/login', async (request, response) => {
 
   jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: '1d' }, (error, token) => {
     if (error) {
-      console.log(error);
-      return response.status(400).json({ error: 'Could not log you in' });
+      return next(new Error('Could not log you in'));
     }
     return response.status(200).json({ message: 'You have been logged in', token });
   });
 
-  return response.status(400).json({ error: 'Could not log you in' });
+  return next(new Error('Could not log you in'));
 });
 
-router.post('/email/verify', async (request, response) => {
+router.post('/email/verify', async (request, response, next) => {
   const { token } = request.body;
 
-  if (!token) return response.status(400).json({ error: 'You must provide an email verification token' });
+  if (!token) return next(new Error('You must provide an email verification token'));
 
   const dbToken = await EmailVerificationToken.findOne({ token });
 
-  if (!dbToken) return response.status(400).json({ error: 'Invalid email verification token' });
+  if (!dbToken) return next(new Error('Invalid email verification token'));
 
   const user = await User.findOne({ id: dbToken.id });
 
@@ -98,9 +94,9 @@ router.post('/email/verify', async (request, response) => {
   return response.status(200).json({ message: 'Your email has been verified. You can now login.' });
 });
 
-router.post('/email/verify/request', async (request, response) => {
+router.post('/email/verify/request', async (request, response, next) => {
   const { email } = request.body;
-  if (!email) return response.status(400).json({ error: 'You must provide an email to verify' });
+  if (!email) return next(new Error('You must provide an email to verify'));
 
   const user = await User.findOne({ email });
 
@@ -129,27 +125,23 @@ router.post('/email/verify/request', async (request, response) => {
     .json({ message: 'If that email exists, you have been sent a verification link' });
 });
 
-router.post('/password/reset', async (request, response) => {
+router.post('/password/reset', async (request, response, next) => {
   const { token, newPassword, newPasswordConfirm } = request.body;
 
   if (!token || !newPassword || !newPasswordConfirm) {
-    return response
-      .status(400)
-      .json({ error: 'You must provide a password reset token and a password' });
+    return next(new Error('You must provide a password reset token and a password'));
   }
 
-  if (newPassword !== newPasswordConfirm) return response.status(400).json({ error: 'Passwords are not the same' });
+  if (newPassword !== newPasswordConfirm) return next(new Error('Passwords are not the same'));
 
   const dbToken = await PasswordResetToken.findOne({ token });
 
-  if (!dbToken) return response.status(400).json({ error: 'Invalid password reset token' });
+  if (!dbToken) return next(new Error('Invalid password reset token'));
 
   const user = await User.findOne({ id: dbToken.id });
 
   if (await PasswordUtils.compare(newPassword, user.password)) {
-    return response
-      .status(400)
-      .json({ error: 'You cannot use the same password as your previous password' });
+    return next(new Error('You cannot use the same password as your previous password'));
   }
 
   user.password = await PasswordUtils.encrypt(newPassword);
