@@ -11,12 +11,12 @@ const User = require('../models/User');
 const EmailVerificationToken = require('../models/EmailVerificationToken');
 const PasswordResetToken = require('../models/PasswordResetToken');
 
-router.get('/verify', async (request, response) => {
+router.get('/verify', async (request, response, next) => {
   const authHeader = request.get('authorization');
-  if (!request.user || !authHeader) throw new Error('No user details provided');
+  if (!request.user || !authHeader) return next(new Error('No user details provided'));
 
   const token = authHeader.split(' ')[1];
-  if (!token) throw new Error('No user details provided');
+  if (!token) return next(new Error('No user details provided'));
 
   const verified = jwt.verify(token, process.env.TOKEN_SECRET);
   return response.status(200).json({ jwt: verified, loggedIn: true });
@@ -64,15 +64,12 @@ router.post('/login', async (request, response, next) => {
     id: user.id,
     username: user.username,
   };
-
-  jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: '1d' }, (error, token) => {
-    if (error) {
-      return next(new Error('Could not log you in'));
-    }
+  try {
+    const token = jwt.sign(payload, process.env.TOKEN_SECRET, { expiresIn: '1d' });
     return response.status(200).json({ message: 'You have been logged in', token });
-  });
-
-  return next(new Error('Could not log you in'));
+  } catch (e) {
+    return next(e);
+  }
 });
 
 router.post('/email/verify', async (request, response, next) => {

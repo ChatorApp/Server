@@ -9,6 +9,7 @@ module.exports = {
         try {
           const result = jwt.verify(token, process.env.TOKEN_SECRET);
           request.user = result;
+          next();
         } catch (e) {
           next(e);
         }
