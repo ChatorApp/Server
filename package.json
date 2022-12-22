@@ -12,7 +12,7 @@
     "express": "^4.17.1",
     "flake-idgen": "^1.4.0",
     "helmet": "^3.23.3",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "mongoose": "^5.9.21",
     "mongoose-long": "^0.3.0",
     "morgan": "^1.10.0",
